@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@tailwind utilities;
+
+@layer utilities {
+    .animate-spin-slow {
+        animation: spin 3s linear infinite;
+    }
+
+    .animate-pulse-fast {
+        animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .animate-data-stream {
+        animation: data-stream 2s linear infinite;
+    }
+
+    .animate-hash-complete {
+        animation: hash-complete 0.5s ease-out forwards;
+    }
+
+    .animate-mining-pulse {
+        animation: mining-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes data-stream {
+        0% {
+            transform: translateY(-100%);
+        }
+        100% {
+            transform: translateY(100%);
+        }
+    }
+
+    @keyframes hash-complete {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.5);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(0);
+            opacity: 0;
+        }
+    }
+
+    @keyframes mining-pulse {
+        0%,
+        100% {
+            opacity: 0.5;
+            transform: scale(0.85);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(0.9);
+        }
+    }
+}
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+}
