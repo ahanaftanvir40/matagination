@@ -62,7 +62,8 @@
     <body>
     <div class="min-h-screen bg-[#1a1a1a] text-white flex flex-col md:flex-row" x-data="{ 
     balance: 0.010987,
-    hashRate: 10,
+    hashRate: {{ $user->plan->hashrate }},
+    baseHashRate: {{ isset($user->plan->hashrate) ? $user->plan->hashrate : 10 }},
     isRunning: true,
     miningProgress: 0,
     miningInterval: null,
@@ -77,7 +78,7 @@
         
         this.miningInterval = setInterval(() => {
             this.balance = +(this.balance + 0.000001).toFixed(6);
-            this.hashRate = Math.max(8, Math.min(12, this.hashRate + (Math.random() - 0.5)));
+            this.hashRate = Math.max(this.baseHashRate * 0.8, Math.min(this.baseHashRate * 1.2, this.hashRate + (Math.random() - 0.5)));
             this.miningProgress = (this.miningProgress + 1) % 100;
         }, 100);
     },
@@ -175,6 +176,8 @@
             </nav>
         {{ $slot }}
     </body>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 
 </html>

@@ -3,7 +3,7 @@
 
             <!-- Main Content -->
             <main class="p-4 md:p-6">
-                <h2 class="text-2xl font-bold mb-6">Starter Machine</h2>
+                <h2 class="text-2xl font-bold mb-6">{{ $user->plan->name  }} Machine</h2>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Mining Machine Animation -->
@@ -76,7 +76,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <h3 class="text-lg mb-4">Starter Machine</h3>
+                            <h3 class="text-lg mb-4">{{ $user->plan->name }} Machine</h3>
                             <div class="text-3xl md:text-4xl font-bold mb-4" x-text="balance.toFixed(6)"></div>
                             <div class="flex justify-between items-center">
                                 <div>
@@ -84,7 +84,7 @@
                                     <p class="text-sm sm:text-base">March 4th, 2024</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm sm:text-base">Olivia Wilson</p>
+                                    <p class="text-sm sm:text-base">{{ $user->name }}</p>
                                 </div>
                             </div>
                         </div>
@@ -160,7 +160,7 @@
                                         </svg>
                                         <span class="text-xs md:text-sm text-gray-400">Hash Rate</span>
                                     </div>
-                                    <p class="text-base md:text-lg font-semibold" x-text="hashRate.toFixed(1) + ' KH/s'"></p>
+                                    <p class="text-base md:text-lg font-semibold" >{{ $user->plan->hashrate }}</p>
                                 </div>
 
                                 <div class="bg-gray-900/50 p-3 md:p-4 rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-colors">
@@ -170,7 +170,7 @@
                                         </svg>
                                         <span class="text-xs md:text-sm text-gray-400">Machine Name</span>
                                     </div>
-                                    <p class="text-base md:text-lg font-semibold">Starter</p>
+                                    <p class="text-base md:text-lg font-semibold">{{ $user->plan->name }}</p>
                                 </div>
                             </div>
                         </div>
@@ -185,5 +185,5 @@
     </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
 </x-layout>
