@@ -76,7 +76,15 @@ Route::put('/users/{id}/update', function(Request $request, $id) {
     return redirect()->route('update-details', ['id' => $user->id])->with('status', 'Profile updated successfully!');
 })->name('users.update');
 
-Route::put('/users/update-password', function(Request $request) {
+// Update password route - added ID parameter
+Route::put('/users/{id}/update-password', function(Request $request, $id) {
+    // Find the user by ID
+    $user = User::find($id);
+    
+    if (!$user) {
+        return redirect()->route('welcome')->with('error', 'User not found.');
+    }
+    
     // Validate the request
     $validated = $request->validate([
         'current_password' => 'required',
@@ -84,11 +92,8 @@ Route::put('/users/update-password', function(Request $request) {
         'new_password_confirmation' => 'required',
     ]);
     
-    // Get the first user (for demo purposes)
-    $user = User::first();
-    
-    // Check if current password is correct or if it's our test password
-    if ($validated['current_password'] !== 'password123' && !Hash::check($validated['current_password'], $user->password)) {
+    // Check if current password is correct
+    if (!Hash::check($validated['current_password'], $user->password)) {
         return redirect()->back()->withErrors(['current_password' => 'The current password is incorrect.']);
     }
     
@@ -96,5 +101,5 @@ Route::put('/users/update-password', function(Request $request) {
     $user->password = Hash::make($validated['new_password']);
     $user->save();
     
-    return redirect()->back()->with('status', 'Password updated successfully!');
+    return redirect()->route('update-details', ['id' => $user->id])->with('status', 'Password updated successfully!');
 })->name('users.update.password');

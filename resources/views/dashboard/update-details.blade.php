@@ -63,7 +63,7 @@
     <div class="bg-gray-800/50 p-6 rounded-2xl backdrop-blur-sm border border-gray-700">
     <h3 class="text-xl font-semibold mb-6">Change Password</h3>
     
-    <form action="{{ route('users.update.password') }}" method="POST" class="space-y-4">
+    <form action="{{ route('users.update.password', ['id' => $user->id]) }}" method="POST" class="space-y-4">
         @csrf
         @method('PUT')
         
