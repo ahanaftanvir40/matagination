@@ -1,4 +1,10 @@
 <x-layout>
+<!-- Add this at the top of your update-details.blade.php -->
+@if(!isset($user))
+    <div class="bg-red-500/20 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-6" role="alert">
+        <span class="block sm:inline">Debug: $user variable is not available</span>
+    </div>
+@endif
 <div class="p-6 max-w-2xl mx-auto">
     <h2 class="text-2xl font-bold mb-8">Update Details</h2>
     
@@ -11,7 +17,7 @@
     <div class="bg-gray-800/50 p-6 rounded-2xl backdrop-blur-sm border border-gray-700 mb-6">
         <h3 class="text-xl font-semibold mb-6">Personal Information</h3>
         
-        <form action="{{ route('users.update') }}" method="POST" class="space-y-4">
+        <form action="{{ route('users.update', ['id' => $user->id]) }}" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
             

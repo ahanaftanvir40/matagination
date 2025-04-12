@@ -25,4 +25,9 @@ class User extends Model
     protected $hidden = [
         'password',
     ];
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
 }

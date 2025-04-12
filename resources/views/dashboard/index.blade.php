@@ -130,7 +130,7 @@
                                         </svg>
                                         <span class="text-xs md:text-sm text-gray-400">Name</span>
                                     </div>
-                                    <p class="text-base md:text-lg font-semibold">Olivia Wilson</p>
+                                    <p class="text-base md:text-lg font-semibold">{{ $user->name }}</p>
                                 </div>
 
                                 <div class="bg-gray-900/50 p-3 md:p-4 rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-colors">

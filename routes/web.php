@@ -13,36 +13,67 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
-Route::get('/dashboard', function() {
-    return view('dashboard.index');
+// Dashboard route
+Route::get('/dashboard/{id}', function($id) {
+    // Find the user by ID with plan relationship loaded
+    $user = User::with('plan')->find($id);
+    
+    // If user not found, redirect to welcome page with error message
+    if (!$user) {
+        return redirect()->route('welcome')->with('error', 'User not found. Please provide a valid user ID.');
+    }
+    
+    // User found, show the dashboard
+    return view('dashboard.index', [
+        'user' => $user
+    ]);
 })->name('dashboard');
 
-Route::get('/update-details', function() {
-    // Get the first user for demo purposes
-    $user = User::first();
+// Add a catch-all redirect for the base dashboard URL
+Route::get('/dashboard', function() {
+    // Redirect to welcome page with message
+    return redirect()->route('welcome')->with('error', 'Please provide a user ID to access the dashboard.');
+})->name('dashboard.redirect');
+
+
+
+// Update details route
+Route::get('/update-details/{id}', function($id) {
+    // Get the user by ID
+    $user = User::find($id);
+    
+    // If user not found, redirect
+    if (!$user) {
+        return redirect()->route('welcome')->with('error', 'User not found.');
+    }
     
     return view('dashboard.update-details', [
         'user' => $user
     ]);
 })->name('update-details');
 
-// Form submission routes
-Route::put('/users/update', function(Request $request) {
+Route::put('/users/{id}/update', function(Request $request, $id) {
+    // Find the user by ID
+    $user = User::find($id);
+    
+    if (!$user) {
+        return redirect()->route('welcome')->with('error', 'User not found.');
+    }
+    
     // Validate the request
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'email' => 'required|email|max:255',
     ]);
     
-    // Update the first user (for demo purposes)
-    $user = User::first();
+    // Update the user
     $user->name = $validated['name'];
     $user->email = $validated['email'];
     $user->save();
     
-    return redirect()->back()->with('status', 'Profile updated successfully!');
+    return redirect()->route('update-details', ['id' => $user->id])->with('status', 'Profile updated successfully!');
 })->name('users.update');
 
 Route::put('/users/update-password', function(Request $request) {
