@@ -4,6 +4,17 @@
             <!-- Main Content -->
             <main class="p-4 md:p-6">
                 <h2 class="text-2xl font-bold mb-6">{{ $user->plan->name  }} Machine</h2>
+
+
+<!-- Add a prominent expired banner if needed -->
+@if($user->plan_ends_at && $user->plan_ends_at->isPast())
+    <div class="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-xl mb-6 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>Your plan has expired. Please renew your subscription to continue mining.</span>
+    </div>
+@endif
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Mining Machine Animation -->
@@ -14,21 +25,21 @@
                                 <!-- Status Bar -->
                                 <div class="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 h-6 sm:h-8 bg-gray-900/50 rounded-lg border border-purple-500/20 flex items-center justify-between px-2 sm:px-3">
                                     <div class="flex items-center space-x-1 sm:space-x-2">
-                                        <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full" :class="isRunning ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
-                                        <span class="text-xs font-mono text-purple-400">Mining <span x-text="isRunning ? 'Active' : 'Stopped'"></span></span>
+                                        <div class="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full" id="mining-circle" :class="isRunning ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
+                                        <span class="text-xs font-mono text-purple-400" id='mining-status'>Mining Active</span>
                                     </div>
-                                    <div class="text-xs font-mono text-purple-400" x-text="hashRate.toFixed(1) + ' KH/s'"></div>
+                                    <div class="text-xs font-mono text-purple-400" id="stop-hash">{{ $user->plan->hashrate }} KH/s</div>
                                 </div>
 
                                 <!-- Mining Grid -->
-                                <div class="absolute top-10 sm:top-16 inset-x-2 sm:inset-x-4 bottom-10 sm:bottom-16 grid grid-cols-4 grid-rows-4 gap-1 sm:gap-2">
+                                <div class="absolute top-10 sm:top-16 inset-x-2 sm:inset-x-4 bottom-10 sm:bottom-16 grid grid-cols-4 grid-rows-4 gap-1 sm:gap-2 ">
                                     
                                     <template x-for="i in 16">
                                         <div
                                             class="relative bg-gray-800/50 rounded-lg border border-purple-500/20 overflow-hidden"
                                             :class="isRunning ? ''  : ''"
                                         >
-                                            <template x-if="isRunning">
+                                            <template x-if="isRunning" class="mining-grid">
                                                 <div class="absolute inset-x-1 sm:inset-x-2 h-full animate-data-stream">
                                                     <div 
                                                         class="w-0.5 sm:w-1 h-1/3 bg-purple-500/30 animate-data-stream"
@@ -52,13 +63,13 @@
 
                                 <!-- Progress Bar -->
                                 <div class="absolute bottom-2 sm:bottom-4 inset-x-2 sm:inset-x-4">
-                                    <div class="h-1.5 sm:h-2 bg-gray-900 rounded-full overflow-hidden">
+                                    <div class="h-1.5 sm:h-2 bg-gray-900 rounded-full overflow-hidden " id='set-inactive'>
                                         <div 
-                                            class="h-full bg-gradient-to-r from-purple-600 to-purple-400 transition-all duration-200"
+                                            class="h-full bg-gradient-to-r from-purple-600 to-purple-400 transition-all duration-200 "
                                             :style="{ width: miningProgress + '%' }"
                                         ></div>
                                     </div>
-                                    <div class="mt-1 sm:mt-2 flex justify-between text-[0.5rem] sm:text-xs font-mono text-purple-400/70">
+                                    <div class="mt-1 sm:mt-2 flex justify-between text-[0.5rem] sm:text-xs font-mono text-purple-400/70" id='hide-progress'>
                                         <span>Block Progress</span>
                                         <span x-text="miningProgress + '%'"></span>
                                     </div>
@@ -70,18 +81,26 @@
                     <!-- Mining Stats -->
                     <div class="space-y-4 md:space-y-6">
                         <!-- Machine Card -->
-                        <div class="bg-purple-700 p-4 md:p-6 rounded-2xl relative overflow-hidden group hover:scale-105 transition-transform duration-300">
+                        <div class="bg-purple-700 p-4 md:p-6 rounded-2xl relative overflow-hidden group hover:scale-105 transition-transform duration-300 {{ $user->plan_ends_at && $user->plan_ends_at->isPast() ? 'opacity-75' : '' }}">
+                             <!-- Add an expired overlay if plan has expired -->
+    @if($user->plan_ends_at && $user->plan_ends_at->isPast())
+        <div class="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+            <div class="bg-red-900/80 px-4 py-2 rounded-lg font-bold transform rotate-45 shadow-lg">
+                EXPIRED
+            </div>
+        </div>
+    @endif
                             <div class="absolute top-2 right-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 cursor-pointer hover:text-purple-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
                             </div>
                             <h3 class="text-lg mb-4">{{ $user->plan->name }} Machine</h3>
-                            <div class="text-3xl md:text-4xl font-bold mb-4" x-text="balance.toFixed(6)"></div>
+                            <div class="text-3xl md:text-4xl font-bold mb-4 token-balance" >{{ $balance }}</div>
                             <div class="flex justify-between items-center">
                                 <div>
                                     <p class="text-xs sm:text-sm text-gray-300">Expired Date:</p>
-                                    <p class="text-sm sm:text-base">March 4th, 2024</p>
+                                    <p class="text-sm sm:text-base">{{ $user->plan_ends_at ? $user->plan_ends_at->format('F jS, Y') : 'N/A' }}</p>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-sm sm:text-base">{{ $user->name }}</p>
@@ -102,10 +121,9 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <button
-                                        @click="isRunning = !isRunning; isRunning ? startMining() : stopMining()"
-                                        :class="isRunning ? 'px-2 md:px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs md:text-sm' : 'px-2 md:px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs md:text-sm'"
-                                        x-text="isRunning ? 'Active' : 'Stopped'"
-                                    ></button>
+                                        id="change-status"
+                                        class='px-2 md:px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs md:text-sm' 
+                                    >Active</button>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 md:w-6 md:h-6 text-gray-400 hover:text-white transition-colors cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
                                     </svg>
@@ -140,7 +158,7 @@
                                         </svg>
                                         <span class="text-xs md:text-sm text-gray-400">Balance</span>
                                     </div>
-                                    <p class="text-base md:text-lg font-semibold" x-text="balance.toFixed(6)"></p>
+                                    <p class="text-base md:text-lg font-semibold token-balance" >{{ $balance }}</p>
                                 </div>
 
                                 <div class="bg-gray-900/50 p-3 md:p-4 rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-colors">
@@ -150,7 +168,11 @@
                                         </svg>
                                         <span class="text-xs md:text-sm text-gray-400">Expired Date</span>
                                     </div>
-                                    <p class="text-base md:text-lg font-semibold">March 4th, 2024</p>
+                                    <p class="text-base md:text-lg font-semibold">{{ $user->plan_ends_at ? $user->plan_ends_at->format('F jS, Y') : 'N/A' }}</p>
+    
+    @if($user->plan_ends_at && $user->plan_ends_at->isPast())
+        <span class="inline-block mt-1 px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">EXPIRED</span>
+    @endif
                                 </div>
 
                                 <div class="bg-gray-900/50 p-3 md:p-4 rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-colors">
@@ -184,6 +206,117 @@
         </div>
     </div>
 
+    <script>
+    // Parse dates for more accurate calculation
+    const planStarted = new Date("{{ $user->plan_started_at }}");
+    const planEnds = new Date("{{ $user->plan_ends_at ?? '' }}");
+    const currentTime = new Date();
+    
+    // Check if plan is active (current time is between start and end dates)
+    const isPlanActive = planStarted <= currentTime && 
+                        (isNaN(planEnds) || planEnds >= currentTime);
+    
+    // Calculate initial balance
+    let initialBalance = 0;
+    const tokensPerDay = {{ $user->plan->tokens_per_day ?? 0 }};
+    const tokensPerSecond = tokensPerDay / 86400;
+    
+    // Only calculate if plan has started and is still active
+    if (isPlanActive) {
+        const secondsRunning = Math.floor((currentTime - planStarted) / 1000);
+        initialBalance = secondsRunning * tokensPerSecond;
+    }
+    
+    // Set current balance with non-negative value
+    let currentBalance = Math.max(0, initialBalance);
+    
+    // Set initial machine state based on plan status
+    let isRunning = isPlanActive;
+    
+    // Function to update all balance displays
+    function updateBalanceDisplays() {
+        // Get all elements with the token-balance class
+        const balanceElements = document.querySelectorAll('.token-balance');
+        
+        // Update each element with the formatted balance
+        balanceElements.forEach(element => {
+            element.textContent = currentBalance.toFixed(6);
+        });
+    }
+    
+    // Initialize all displays
+    updateBalanceDisplays();
+
+    // Update at regular intervals, but only if the plan is active
+    const balanceInterval = isPlanActive ? setInterval(() => {
+        currentBalance += tokensPerSecond;
+        updateBalanceDisplays();
+    }, 1000) : null; // update every second
+    
+    // Add status indicators for plan expiration
+    if (!isPlanActive && !isNaN(planEnds) && planEnds < currentTime) {
+        // Plan has expired - add visual indicators
+        document.querySelectorAll('.machine-status').forEach(el => {
+            el.textContent = 'EXPIRED';
+            el.classList.add('text-red-400');
+        });
+        
+        document.querySelectorAll('.disable-machine').forEach(el => {
+            el.textContent = 'EXPIRED';
+            el.classList.add('text-red-400');
+        });
+        // Hide the mining progress bar
+        document.getElementById('set-inactive').classList.add('hidden');
+        document.getElementById('hide-progress').classList.add('hidden');
+        // Hide the mining grid
+        document.querySelectorAll('.mining-grid').forEach(el => {
+            el.classList.add('hidden');
+        });
+
+        document.getElementById("mining-circle").classList.add("bg-red-500");
+        document.getElementById("mining-status").innerText = "Mining Stopped";
+        document.getElementById("stop-hash").innerText = "0";
+        document.getElementById("change-status").innerText = "Inactive";
+        document.getElementById("change-status").classList.add("bg-red-800", "text-red-200");
+        // Disable the mining toggle button
+        const toggleButton = document.querySelector('[data-mining-toggle]');
+        if (toggleButton) {
+            toggleButton.disabled = true;
+            toggleButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+    
+</script>
+<script>
+    // Your existing script code
+    
+    // Function to update hash rate display
+    function updateHashRate() {
+        const hashRateElement = document.getElementById('stop-hash');
+        if (hashRateElement) {
+            hashRateElement.textContent = hashRate.toFixed(1) + ' KH/s';
+        }
+    }
+    
+    // Set interval to update the hash rate display
+    const hashRateInterval = isPlanActive ? setInterval(() => {
+        // Update hash rate value with some randomness
+        hashRate = Math.max(baseHashRate * 0.8, Math.min(baseHashRate * 1.2, hashRate + (Math.random() - 0.5)));
+        
+        // Update the display
+        updateHashRate();
+    }, 100) : null;
+    
+    // Initialize the hash rate display
+    let hashRate = {{ $user->plan->hashrate ?? 10 }};
+    let baseHashRate = {{ $user->plan->hashrate ?? 10 }};
+    updateHashRate();
+    
+    // When plan is expired, set hash rate to 0
+    if (!isPlanActive && !isNaN(planEnds) && planEnds < currentTime) {
+        document.getElementById("stop-hash").innerText = "0 KH/s";
+    }
+</script>
 
 
 </x-layout>

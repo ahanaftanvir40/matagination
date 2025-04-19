@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,14 +22,32 @@ Route::get('/dashboard/{id}', function($id) {
     // Find the user by ID with plan relationship loaded
     $user = User::with('plan')->find($id);
     
-    // If user not found, redirect to welcome page with error message
     if (!$user) {
         return redirect()->route('welcome')->with('error', 'User not found. Please provide a valid user ID.');
     }
     
+    // Calculate token balance considering time zones
+    $balance = 0;
+    
+    if ($user->plan && $user->plan_started_at) {
+        $startDate = Carbon::parse($user->plan_started_at);
+        $now = now();
+        
+        // Only calculate if plan has started
+        if ($startDate->lessThanOrEqualTo($now)) {
+            $seconds = $startDate->diffInSeconds($now);
+            $tokensPerDay = $user->plan->tokens_per_day ?? 0;
+            $tokensPerSecond = $tokensPerDay / 86400;
+            $balance = round($seconds * $tokensPerSecond, 6);
+        }
+    }
+    $isPlanExpired = $user->isPlanExpired();
+    
     // User found, show the dashboard
     return view('dashboard.index', [
-        'user' => $user
+        'user' => $user,
+        'balance' => $balance,
+        'isPlanExpired' => $isPlanExpired,
     ]);
 })->name('dashboard');
 

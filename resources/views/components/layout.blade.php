@@ -61,19 +61,39 @@
 
     <body>
     <div class="min-h-screen bg-[#1a1a1a] text-white flex flex-col md:flex-row" x-data="{ 
-    balance: 0.010987,
-    hashRate: {{ $user->plan->hashrate }},
-    baseHashRate: {{ isset($user->plan->hashrate) ? $user->plan->hashrate : 10 }},
-    isRunning: true,
+    balance: {{ $balance ?? '0' }},
+    hashRate: {{ $user->plan->hashrate ?? 10 }},
+    baseHashRate: {{ $user->plan->hashrate ?? 10 }},
+    // Better condition check with isset() and instanceof
+    isPlanExpired: {{ 
+        isset($user->plan_ends_at) && 
+        $user->plan_ends_at instanceof \Carbon\Carbon && 
+        now()->greaterThanOrEqualTo($user->plan_ends_at) ? 'true' : 'false' 
+    }},
+    isRunning: {{ isset($user->plan_ends_at) && $user->plan_ends_at instanceof \Carbon\Carbon && $user->plan_ends_at->isPast() ? 'false' : 'true' }},
     miningProgress: 0,
     miningInterval: null,
     sidebarOpen: false,
     
     init() {
-        this.startMining();
+        // Add a console log for debugging
+        
+        // Check expired state at initialization
+        if (this.isPlanExpired) {
+            
+            this.isRunning = false;
+            // You could also visually update the UI here
+        } else if (this.isRunning) {
+           
+            this.startMining();
+        }
     },
     
     startMining() {
+        if (this.isPlanExpired){
+            this.isRunning = false;
+            return;
+        }
         if (!this.isRunning) return;
         
         this.miningInterval = setInterval(() => {
@@ -84,6 +104,7 @@
     },
     
     stopMining() {
+        this.isRunning = false;
         clearInterval(this.miningInterval);
     },
     
