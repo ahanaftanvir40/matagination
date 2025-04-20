@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 })->name('welcome');
 
 // Dashboard route
@@ -23,7 +23,7 @@ Route::get('/dashboard/{id}', function($id) {
     $user = User::with('plan')->find($id);
     
     if (!$user) {
-        return redirect()->route('welcome')->with('error', 'User not found. Please provide a valid user ID.');
+        return redirect()->route('login')->with('error', 'User not found. Please provide a valid user ID.');
     }
     
     // Calculate token balance considering time zones
@@ -140,3 +140,9 @@ Route::put('/users/{id}/update-password', function(Request $request, $id) {
     
     return redirect()->route('update-details', ['id' => $user->id])->with('status', 'Password updated successfully!');
 })->name('users.update.password');
+
+
+// Auth routes
+Route::get('/login', function () {
+    return view('login.index');
+})->name('login');
