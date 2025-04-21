@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,10 @@ Route::get('/', function () {
 
 // Dashboard route
 Route::get('/dashboard/{id}', function($id) {
+    
+    if (Auth::id() != $id) {
+        return redirect()->route('dashboard', ['id' => Auth::id()]);
+    }
     // Find the user by ID with plan relationship loaded
     $user = User::with('plan')->find($id);
     
@@ -49,17 +54,24 @@ Route::get('/dashboard/{id}', function($id) {
         'balance' => $balance,
         'isPlanExpired' => $isPlanExpired,
     ]);
-})->name('dashboard');
+})->middleware('auth')->name('dashboard');
 
 // Add a catch-all redirect for the base dashboard URL
 Route::get('/dashboard', function() {
-    return redirect()->route('welcome')->with('error', 'Please provide a user ID to access the dashboard.');
+    if (Auth::check()) {
+        return redirect()->route('dashboard', ['id' => Auth::id()]);
+    }
+    return redirect()->route('login');
 })->name('dashboard.redirect');
 
 
 
 // Update details route
 Route::get('/update-details/{id}', function($id) {
+
+    if (Auth::id() != $id) {
+        return redirect()->route('update-details', ['id' => Auth::id()]);
+    }
     // Get the user by ID
     $user = User::find($id);
     
@@ -71,9 +83,14 @@ Route::get('/update-details/{id}', function($id) {
     return view('dashboard.update-details', [
         'user' => $user
     ]);
-})->name('update-details');
+})->middleware('auth')->name('update-details');
 
 Route::put('/users/{id}/update', function(Request $request, $id) {
+
+    if (Auth::id() != $id) {
+        return redirect()->route('dashboard', ['id' => Auth::id()]);
+    }
+    
     // Find the user by ID
     $user = User::find($id);
     
@@ -93,11 +110,15 @@ Route::put('/users/{id}/update', function(Request $request, $id) {
     $user->save();
     
     return redirect()->route('update-details', ['id' => $user->id])->with('status', 'Profile updated successfully!');
-})->name('users.update');
+})->middleware('auth')->name('users.update');
 
 
 // password route 
 Route::put('/users/{id}/update-password', function(Request $request, $id) {
+
+    if (Auth::id() != $id) {
+        return redirect()->route('dashboard', ['id' => Auth::id()]);
+    }
     // Find the user by ID
     $user = User::find($id);
     
@@ -139,10 +160,73 @@ Route::put('/users/{id}/update-password', function(Request $request, $id) {
     $user->save();
     
     return redirect()->route('update-details', ['id' => $user->id])->with('status', 'Password updated successfully!');
-})->name('users.update.password');
+})->middleware('auth')->name('users.update.password');
 
 
-// Auth routes
+
+
+// Authentication Routes
 Route::get('/login', function () {
+    // If user is already logged in, redirect to dashboard
+    if (Auth::check()) {
+        return redirect()->route('dashboard', ['id' => Auth::id()]);
+    }
     return view('login.index');
 })->name('login');
+
+Route::post('/login', function (Request $request) {
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    // Remember me functionality
+    $remember = $request->has('remember');
+
+    // Get the user first
+    $user = User::where('email', $credentials['email'])->first();
+    
+    if (!$user) {
+        return back()->withErrors([
+            'email' => 'No account found with this email address.',
+        ])->withInput($request->only('email'));
+    }
+
+    $passwordMatches = false;
+
+    // Check if the password is already a bcrypt hash
+    if (str_starts_with($user->password, '$2y$')) {
+        // It's a bcrypt hash, use Hash::check
+        $passwordMatches = Hash::check($credentials['password'], $user->password);
+    } else {
+        // It's likely a plain text password, do a direct comparison
+        $passwordMatches = $credentials['password'] === $user->password;
+        
+        // If it matches, update to bcrypt hash for security
+        if ($passwordMatches) {
+            $user->password = Hash::make($credentials['password']);
+            $user->save();
+        }
+    }
+
+    if ($passwordMatches) {
+        // Login successful
+        Auth::login($user, $remember);
+        $request->session()->regenerate();
+        
+        // Redirect to the user's dashboard
+        return redirect()->route('dashboard', ['id' => Auth::id()]);
+    }
+
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ])->withInput($request->only('email'));
+})->name('login.process');
+
+Route::post('/logout', function (Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    
+    return redirect()->route('login');
+})->name('logout');
